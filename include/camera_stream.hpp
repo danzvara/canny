@@ -12,7 +12,7 @@ class CameraStream {
 
     CameraStream(int camera);
 
-    void useCanny(Canny& canny);
+    void useCanny(Canny* canny);
 
     int run();
 

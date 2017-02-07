@@ -26,7 +26,7 @@ int CameraStream::run()
   return 0;
 }
 
-void CameraStream::useCanny(Canny& canny)
+void CameraStream::useCanny(Canny* canny)
 {
-  this->canny = &canny;
+  this->canny = canny;
 }
