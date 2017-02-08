@@ -1,6 +1,6 @@
 #include "canny.hpp"
 
-Canny::Canny() : threshold(0) {};
+Canny::Canny() : threshold(20) {};
 
 Canny::Canny(int threshold) : threshold(threshold) {};
 
@@ -27,7 +27,7 @@ cv::Mat& Canny::detect(cv::Mat& src)
   cv::Mat& gradientX = applyKernel(frame, kernelGX, 3, 1);
   cv::Mat& gradientY = applyKernel(frame, kernelGY, 3, 1);
   cv::Mat& gradientMag = sobel(gradientX, gradientY);
-  applyThreshold(gradientMag, 20);
+  applyThreshold(gradientMag, threshold);
   cv::Mat& suppressedGradient = nonMaxSuppression(gradientX, gradientY, gradientMag);
   dualThreshold(suppressedGradient, 30, 40);
   edgeTrack(suppressedGradient);
@@ -114,7 +114,7 @@ void Canny::applyThreshold(cv::Mat& src, uchar t)
 }
 
 cv::Mat&
-Canny::nonMaxSuppression(cv::Mat& gradientX, cv::Mat& gradientY, cv::Mat& gradientMag)
+Canny::nonMaxSuppression (cv::Mat& gradientX, cv::Mat& gradientY, cv::Mat& gradientMag)
 {
   int R = gradientMag.rows;
   int C = gradientMag.cols;
