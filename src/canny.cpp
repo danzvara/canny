@@ -85,8 +85,20 @@ void Canny::sobel(cv::Mat& src)
   }
 }
 
-void Canny::applyThreshold(cv::Mat& src)
+/* Applies given threshold to the src image.
+ * Everything with the value < t will be set to 0.
+ *
+ * src - uchar, single channel */
+void Canny::applyThreshold(cv::Mat& src, uchar t)
 {
+  for (int i = 0; i < src.rows; i++)
+  {
+    Vec1b* src_row = src.ptr<Vec1b>(i);
+    for (int j = 0; j < src.cols; j++)
+    {
+        src_row[j][0] = src_row[j][0] < t ? 0 : src_row[j][0];
+    }
+  }
 }
 
 void Canny::nonMaxSuppression(cv::Mat& src)
