@@ -4,36 +4,33 @@
 #include <cmath>
 
 class Canny {
-  typedef cv::Vec<uint8_t, 1> Vec1b;
-  typedef cv::Vec<uint8_t, 3> Vec3b;
-
-  const int kernel[5][5] = {{2, 4, 5, 4, 2},
-                      {4, 9, 12, 9, 4},
-                      {5, 12, 15, 12, 5},
-                      {4, 9, 12, 9, 4},
-                      {2, 4, 5, 4, 2}};
   public:
 
     Canny();
 
     Canny(int threshold);
 
-    cv::Mat& detect(cv::Mat& image);
+    cv::Mat& detect(cv::Mat& src);
 
   private:
-    cv::Mat& applyKernel(cv::Mat& image, const int kernel[5][5], int size, double k);
+    cv::Mat& applyKernel(cv::Mat& src, cv::Mat& kernel, const int size, const double k);
 
-    void sobel(cv::Mat& image);
+    void sobel(cv::Mat& src);
 
-    void applyThreshold(cv::Mat& image);
+    void applyThreshold(cv::Mat& src);
 
-    void nonMaxSuppression(cv::Mat& image);
+    void nonMaxSuppression(cv::Mat& src);
 
-    void dualThreshold(cv::Mat& image);
+    void dualThreshold(cv::Mat& src);
 
-    void edgeTrack(cv::Mat &image);
+    void edgeTrack(cv::Mat &src);
 
 
     int threshold;
+
+    typedef cv::Vec<uint8_t, 1> Vec1b;
+    typedef cv::Vec<uint8_t, 3> Vec3b;
+    typedef cv::Vec<int, 1> Vec1i;
+    typedef uint8_t uchar;
 };
 #endif
