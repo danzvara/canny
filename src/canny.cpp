@@ -30,6 +30,7 @@ cv::Mat& Canny::detect(cv::Mat& src)
   applyThreshold(gradientMag, 20);
   cv::Mat& suppressedGradient = nonMaxSuppression(gradientX, gradientY, gradientMag);
   dualThreshold(suppressedGradient, 30, 40);
+  edgeTrack(suppressedGradient);
 
   return suppressedGradient;
 }
@@ -199,6 +200,20 @@ Canny::dualThreshold (cv::Mat& src, int low, int high)
 }
 
 void
-Canny::edgeTrack (cv::Mat &src)
+Canny::edgeTrack (cv::Mat& src)
 {
+  for (int i = 2; i < src.rows; i++)
+  {
+    for (int j = 2; j < src.cols; j++)
+    {
+      if (src.at<cv::Vec<uchar, 1> >(i, j)[0] == 100)
+      {
+        src.at<cv::Vec<uchar, 1> >(i, j)[0] = 0;
+        for (int x = -1; x < 1; x++)
+          for (int y = -1; y < 1; y++)
+            if ((x != 0 || y != 0) && src.at<cv::Vec<uchar, 1> >(i + y, j + x)[0] == 255)
+              src.at<cv::Vec<uchar, 1> >(i, j)[0] = 255;
+      }
+    }
+  }
 }
