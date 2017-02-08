@@ -29,11 +29,14 @@ class Canny {
 
     void dualThreshold(cv::Mat& src);
 
-    void edgeTrack(cv::Mat &src);
+    void 
+    dualThreshold(cv::Mat& src, int low, int high);
 
     void
     suppress(cv::Vec<uchar, 1>* row, int j, int a, int b, int c);
 
+    void
+    edgeTrack (cv::Mat &src);
 
     int threshold;
 

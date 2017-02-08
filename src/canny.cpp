@@ -29,6 +29,8 @@ cv::Mat& Canny::detect(cv::Mat& src)
   cv::Mat& gradientMag = sobel(gradientX, gradientY);
   applyThreshold(gradientMag, 20);
   cv::Mat& suppressedGradient = nonMaxSuppression(gradientX, gradientY, gradientMag);
+  dualThreshold(suppressedGradient, 30, 40);
+
   return suppressedGradient;
 }
 
@@ -170,7 +172,7 @@ Canny::nonMaxSuppression(cv::Mat& gradientX, cv::Mat& gradientY, cv::Mat& gradie
 }
 
 void
-Canny::suppress(cv::Vec<uchar, 1>* row, int j, int a, int b, int c)
+Canny::suppress (cv::Vec<uchar, 1>* row, int j, int a, int b, int c)
 {
   if (a <= b && b >= c)
     row[j][0] = b;
@@ -178,10 +180,25 @@ Canny::suppress(cv::Vec<uchar, 1>* row, int j, int a, int b, int c)
     row[j][0] = 0;
 }
 
-void Canny::dualThreshold(cv::Mat& src)
+void 
+Canny::dualThreshold (cv::Mat& src, int low, int high)
 {
+  for (int i = 2; i < src.rows - 2; i++)
+  {
+    cv::Vec<uchar, 1>* row = src.ptr<cv::Vec<uchar, 1> >(i);
+    for (int j = 2; j < src.cols - 2; j++)
+    {
+      if (row[j][0] > high)
+        row[j][0] = 255;
+      else if (row[j][0] > low)
+        row[j][0] = 100;
+      else
+        row[j][0] = 0;
+    }
+  }
 }
 
-void Canny::edgeTrack(cv::Mat &src)
+void
+Canny::edgeTrack (cv::Mat &src)
 {
 }
