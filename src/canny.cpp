@@ -7,20 +7,24 @@ Canny::Canny(int threshold) : threshold(threshold) {};
 cv::Mat& Canny::detect(cv::Mat& src)
 {
   const int n = 5;
-  const double k = 0.0629;
-  uchar kernelData[n][n] = {{2, 4, 5, 4, 2},
+  const double k = 0.00629;
+  int kernelData[n][n] = {{2, 4, 5, 4, 2},
                       {4, 9, 12, 9, 4},
                       {5, 12, 15, 12, 5},
                       {4, 9, 12, 9, 4},
                       {2, 4, 5, 4, 2}};
-  cv::Mat kernel = cv::Mat(n, n, CV_8UC1, kernelData);
-
-  cv::Mat frame = applyKernel(src, kernel, n, k);
-  sobel(src);
-  return src;
+  cv::Mat kernel = cv::Mat(n, n, CV_32SC1, kernelData);
+  cv::cvtColor(src, src, cv::COLOR_RGB2GRAY, 0);
+  cv::Mat& frame = applyKernel(src, kernel, n, k);
+  sobel(frame);
+  //applyThreshold(frame, 240);
+  return frame;
 }
 
-/* Applies given kernel on the image. Assumes the kernel is of dimension size x size */
+/* Applies given kernel on the image. Assumes the kernel is of dimension size x size.
+ *
+ * src - uchar, single channel
+ * kernel - 32bit signed integer, single channel */
 cv::Mat& Canny::applyKernel(cv::Mat& src, cv::Mat& kernel, const int size, const double k)
 {
   if (kernel.rows < 1 || kernel.cols < 1 || size < 1)
@@ -36,22 +40,25 @@ cv::Mat& Canny::applyKernel(cv::Mat& src, cv::Mat& kernel, const int size, const
       int sum = 0;
       for (int y = -half; y <= half; y++)
       {
-        Vec3b* src_row = src.ptr<Vec3b>(i + y);
+        Vec1b* src_row = src.ptr<Vec1b>(i + y);
         Vec1b* kernel_row = kernel.ptr<Vec1b>(y + half);
         for (int x = -half; x <= half; x++)
         {
-          sum += k * (int) src_row[j + x][0] * kernel_row[x + half][0];
+          sum += (int) (k * (double) src_row[j + x][0] * (double)kernel_row[x + half][0]);
         }
       }
 
       sum = std::abs(sum);
-      dest_row[j] = (uint8_t) (sum / (size * size));
+      dest_row[j] = (uint8_t) (sum);
     }
   }
 
   return *dest;
 }
 
+/* Applies sobel filter on the source image.
+ *
+ * src - uchar single channel */
 void Canny::sobel(cv::Mat& src)
 {
   const int n = 3;
@@ -70,19 +77,19 @@ void Canny::sobel(cv::Mat& src)
 
   for (int i = 1; i < src.rows - 1; i++)
   {
-    Vec1i* gx_row = gradX.ptr<Vec1i>(i);
-    Vec1i* gy_row = gradY.ptr<Vec1i>(i);
-    cv::Vec3b* src_row = src.ptr<cv::Vec3b>(i);
+    Vec1b* gx_row = gradX.ptr<Vec1b>(i);
+    Vec1b* gy_row = gradY.ptr<Vec1b>(i);
+    Vec1b* src_row = src.ptr<Vec1b>(i);
     for (int j = 1; j < src.cols - 1; j++)
     {
-      int GX = gx_row[j][0];
-      int GY = gy_row[j][0];
-      uchar G = (uchar) std::round(std::hypot(GX, GY));
-      src_row[j][0] = G;
-      src_row[j][1] = G;
-      src_row[j][2] = G;
+      uchar GX = gx_row[j][0];
+      uchar GY = gy_row[j][0];
+      int G = 0.5 * (int) std::round(std::hypot((double) GX, (double) GY));
+      src_row[j][0] = G > 255 ? 100 : ((uchar) G);
     }
   }
+
+  delete &gradX, &gradY;
 }
 
 /* Applies given threshold to the src image.
