@@ -1,6 +1,7 @@
 #ifndef CANNY_HPP
 #define CANNY_HPP
 #include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
 #include <cmath>
 
 class Canny {
@@ -13,11 +14,13 @@ class Canny {
     cv::Mat& detect(cv::Mat& src);
 
   private:
-    cv::Mat& applyKernel(cv::Mat& src, cv::Mat& kernel, const int size, const double k);
+    cv::Mat&
+    applyKernel(cv::Mat& src, cv::Mat& kernel, const int size, const double k);
 
-    void sobel(cv::Mat& src);
+    cv::Mat&
+    sobel(cv::Mat& gradientX, cv::Mat& gradientY);
 
-    void applyThreshold(cv::Mat& src);
+    void applyThreshold(cv::Mat& src, uchar t);
 
     void nonMaxSuppression(cv::Mat& src);
 
