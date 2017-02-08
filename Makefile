@@ -2,7 +2,7 @@ CXX = g++
 SOURCEDIR = src
 INC = -I/usr/local/include/ -Iinclude/
 LDDIR = -L/usr/local/lib/
-LDLIBS = -lopencv_core -lopencv_highgui -lopencv_videoio
+LDLIBS = -lopencv_core -lopencv_highgui -lopencv_videoio -lopencv_imgproc
 
 all: main
 
