@@ -4,6 +4,8 @@
 #include <opencv2/imgproc.hpp>
 #include <cmath>
 
+#define PI 3.1415926536
+
 class Canny {
   public:
 
@@ -20,13 +22,17 @@ class Canny {
     cv::Mat&
     sobel(cv::Mat& gradientX, cv::Mat& gradientY);
 
-    void applyThreshold(cv::Mat& src, uchar t);
+    cv::Mat&
+    nonMaxSuppression(cv::Mat& gradientX, cv::Mat& gradientY, cv::Mat& gradientMag);
 
-    void nonMaxSuppression(cv::Mat& src);
+    void applyThreshold(cv::Mat& src, uchar t);
 
     void dualThreshold(cv::Mat& src);
 
     void edgeTrack(cv::Mat &src);
+
+    void
+    suppress(cv::Vec<uchar, 1>* row, int j, int a, int b, int c);
 
 
     int threshold;

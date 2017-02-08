@@ -26,10 +26,10 @@ cv::Mat& Canny::detect(cv::Mat& src)
   cv::Mat& frame = applyKernel(src, kernelGauss, 5, gauss_k);
   cv::Mat& gradientX = applyKernel(frame, kernelGX, 3, 1);
   cv::Mat& gradientY = applyKernel(frame, kernelGY, 3, 1);
-  cv::Mat& gradMag = sobel(gradientX, gradientY);
-
-  //applyThreshold(frame, 240);
-  return gradMag;
+  cv::Mat& gradientMag = sobel(gradientX, gradientY);
+  applyThreshold(gradientMag, 20);
+  cv::Mat& suppressedGradient = nonMaxSuppression(gradientX, gradientY, gradientMag);
+  return suppressedGradient;
 }
 
 /* Applies given kernel on the image. Assumes the kernel is of dimension size x size.
@@ -110,8 +110,72 @@ void Canny::applyThreshold(cv::Mat& src, uchar t)
   }
 }
 
-void Canny::nonMaxSuppression(cv::Mat& src)
+cv::Mat&
+Canny::nonMaxSuppression(cv::Mat& gradientX, cv::Mat& gradientY, cv::Mat& gradientMag)
 {
+  int R = gradientMag.rows;
+  int C = gradientMag.cols;
+  double angle = 0;
+  uchar gx = 0;
+  uchar gy = 0;
+  cv::Mat* grad_suppressed = new cv::Mat(R, C, CV_8UC1);
+
+  for (int i = 2; i < R - 2; i++)
+  {
+    cv::Vec<uchar, 1>* gx_row = gradientX.ptr<cv::Vec<uchar, 1> >(i);
+    cv::Vec<uchar, 1>* gy_row = gradientY.ptr<cv::Vec<uchar, 1> >(i);
+    cv::Vec<uchar, 1>* gsup_row = grad_suppressed->ptr<cv::Vec<uchar, 1> >(i);
+
+    for (int j = 2; j < C - 2; j++)
+    {
+      gx = gx_row[j][0];
+      gy = gy_row[j][0];
+      angle = std::atan2((double) gx, (double) gy);
+
+      if (angle < (-PI / 8))
+        angle += PI;
+
+      if (angle >= (-PI / 8) && angle < (PI / 8))
+      {
+        uchar a = gradientMag.at<cv::Vec<uchar, 1> >(i - 1, j)[0];
+        uchar b = gradientMag.at<cv::Vec<uchar, 1> >(i, j)[0];
+        uchar c = gradientMag.at<cv::Vec<uchar, 1> >(i + 1, j)[0];
+        suppress(gsup_row, j, a, b, c);
+      }
+      else if (angle >= (PI / 8) && angle < ((3 * PI) / 8))
+      {
+        uchar a = gradientMag.at<cv::Vec<uchar, 1> >(i - 1, j + 1)[0];
+        uchar b = gradientMag.at<cv::Vec<uchar, 1> >(i, j)[0];
+        uchar c = gradientMag.at<cv::Vec<uchar, 1> >(i + 1, j - 1)[0];
+        suppress(gsup_row, j, a, b, c);
+      }
+      else if (angle >= ((3 * PI) / 8) && angle < ((5 * PI) / 8))
+      {
+        uchar a = gradientMag.at<cv::Vec<uchar, 1> >(i, j - 1)[0];
+        uchar b = gradientMag.at<cv::Vec<uchar, 1> >(i, j)[0];
+        uchar c = gradientMag.at<cv::Vec<uchar, 1> >(i, j + 1)[0];
+        suppress(gsup_row, j, a, b, c);
+      }
+      else if (angle >= ((5 * PI) / 8) && angle < ((7 * PI) / 8))
+      {
+        uchar a = gradientMag.at<cv::Vec<uchar, 1> >(i - 1, j - 1)[0];
+        uchar b = gradientMag.at<cv::Vec<uchar, 1> >(i, j)[0];
+        uchar c = gradientMag.at<cv::Vec<uchar, 1> >(i + 1, j + 1)[0];
+        suppress(gsup_row, j, a, b, c);
+      }
+    }
+  }
+
+  return *grad_suppressed;
+}
+
+void
+Canny::suppress(cv::Vec<uchar, 1>* row, int j, int a, int b, int c)
+{
+  if (a <= b && b >= c)
+    row[j][0] = b;
+  else
+    row[j][0] = 0;
 }
 
 void Canny::dualThreshold(cv::Mat& src)
