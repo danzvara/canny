@@ -41,14 +41,14 @@ cv::Mat& Canny::applyKernel(cv::Mat& src, cv::Mat& kernel, const int size, const
       for (int y = -half; y <= half; y++)
       {
         Vec1b* src_row = src.ptr<Vec1b>(i + y);
-        Vec1b* kernel_row = kernel.ptr<Vec1b>(y + half);
+        Vec1i* kernel_row = kernel.ptr<Vec1i>(y + half);
         for (int x = -half; x <= half; x++)
         {
-          sum += (int) (k * (double) src_row[j + x][0] * (double)kernel_row[x + half][0]);
+          sum += ((int) src_row[j + x][0]) * kernel_row[x + half][0];
         }
       }
 
-      sum = std::abs(sum);
+      sum = (k * (double) std::abs(sum));
       dest_row[j] = (uint8_t) (sum);
     }
   }
@@ -62,7 +62,7 @@ cv::Mat& Canny::applyKernel(cv::Mat& src, cv::Mat& kernel, const int size, const
 void Canny::sobel(cv::Mat& src)
 {
   const int n = 3;
-  const int k = 1;
+  const double k = 1;
   int kernel_dataGY[n][n] = {{-1, -2, -1},
                                 {0, 0, 0},
                                 {1, 2, 1}};
